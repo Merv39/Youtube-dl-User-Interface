@@ -1,0 +1,11 @@
+{
+    "format": "bestaudio/best",
+    "outtmpl": "../downloads/%(title)s.%(ext)s",
+    "postprocessors": [
+        {
+            "key": "FFmpegExtractAudio",
+            "preferredcodec": "mp3",
+            "preferredquality": "0"
+        }
+    ]
+}
