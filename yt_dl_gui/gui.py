@@ -1,7 +1,19 @@
 from PyQt5.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QPushButton, QWidget, QPlainTextEdit
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
 from downloader import download_video
 import sys
+
+class DownloadWorker(QObject):
+    finished = pyqtSignal()
+    progress = pyqtSignal(str)
+
+    def __init__(self, url: str):
+        super().__init__()
+        self.url = url
+    
+    def run(self):
+        download_video(self.url)
+        self.finished.emit()
 
 class EmittingStream(QObject):
     text_written = pyqtSignal(str)
@@ -28,7 +40,12 @@ class MainWindow(QMainWindow):
 
         self.terminal = QPlainTextEdit(self)
         self.terminal.setReadOnly(True)
-        self.terminal.setStyleSheet("background-color: black; color: lime; font-family: monospace;")
+        self.terminal.setStyleSheet("""
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: monospace;
+            font-size: 14px;
+        """)
         self.terminal.setLineWrapMode(QPlainTextEdit.NoWrap)
     
         # -- Layout --
@@ -53,4 +70,12 @@ class MainWindow(QMainWindow):
 
     def handle_download(self):
         url = self.e1.text()
-        download_video(url)
+        self.thread = QThread()
+        self.worker = DownloadWorker(url)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
+        self.e1.setText("")
