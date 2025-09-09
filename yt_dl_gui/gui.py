@@ -13,10 +13,17 @@ class DownloadWorker(QObject):
         super().__init__()
         self.url = url
         self.format_type = format_type
+        self._stop_flag = False
     
     def run(self):
-        download_video(self.url, self.format_type)
+        download_video(self.url, self.format_type, get_stop_flag=self.get_stop_flag)
         self.finished.emit()
+    
+    def set_stop_flag(self, b : bool):
+        self._stop_flag = b
+    
+    def get_stop_flag(self) -> bool:
+        return self._stop_flag
 
 """
 This class is used to move the terminal output to an output on the GUI
@@ -44,6 +51,8 @@ class MainWindow(QMainWindow):
 
         e2 = QPushButton("Download", self)
         e2.clicked.connect(self.handle_download)
+        e3 = QPushButton("Abort", self)
+        e3.clicked.connect(self.handle_abort)
 
         self.terminal = QPlainTextEdit(self)
         self.terminal.setReadOnly(True)
@@ -67,6 +76,7 @@ class MainWindow(QMainWindow):
         # Create horizontal layout for buttons
         button_layout = QHBoxLayout()
         button_layout.addWidget(e2)
+        button_layout.addWidget(e3)
         button_layout.addWidget(self.open_folder_btn)
 
         vbox = QVBoxLayout()
@@ -114,3 +124,7 @@ class MainWindow(QMainWindow):
         self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
         self.e1.setText("")
+    
+    def handle_abort(self):
+        print("Aborting download.")
+        self.worker.set_stop_flag(True)

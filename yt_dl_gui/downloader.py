@@ -58,7 +58,7 @@ if not (os.path.exists(os.path.join(ffmpeg_dir, 'ffmpeg.exe')) or os.path.exists
 """
 Calls youtube-dl to download the file and returns a bool for success/fail
 """
-def download_video(URL, format_type) -> bool:
+def download_video(URL, format_type, get_stop_flag = None) -> bool:
     # Open options from JSON file
     import json
     options_path = os.path.join(os.path.dirname(__file__), "options.json")
@@ -70,6 +70,11 @@ def download_video(URL, format_type) -> bool:
 
     # Add ffmpeg_location at runtime
     ydl_options["ffmpeg_location"] = ffmpeg_dir
+
+    def progress_hook(d):
+        if get_stop_flag and get_stop_flag() == True:
+            raise Exception("Download aborted by user.")
+    ydl_options['progress_hooks'] = [progress_hook]
 
     try:
         with YoutubeDL(ydl_options) as ydl:
