@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QPushButton, QWidget, QPlainTextEdit, QComboBox
+from PyQt5.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QPushButton, QWidget, QPlainTextEdit, QComboBox, QHBoxLayout
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
-from downloader import download_video
+from downloader import download_video, download_dir
 import sys
+import subprocess
+import os
 
 class DownloadWorker(QObject):
     finished = pyqtSignal()
@@ -54,13 +56,22 @@ class MainWindow(QMainWindow):
 
         self.dropdown = QComboBox()
         self.dropdown.addItems(['mp3', 'flac', 'mp4'])
+
+        # Open Downloads Folder button
+        self.open_folder_btn = QPushButton("Open Downloads Folder", self)
+        self.open_folder_btn.clicked.connect(self.open_downloads_folder)
     
         # -- Layout --
+
+        # Create horizontal layout for buttons
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(e2)
+        button_layout.addWidget(self.open_folder_btn)
 
         vbox = QVBoxLayout()
         vbox.addWidget(self.e1)
         vbox.addWidget(self.dropdown)
-        vbox.addWidget(e2)
+        vbox.addLayout(button_layout)
         vbox.addWidget(self.terminal)
 
         container = QWidget()
@@ -75,6 +86,20 @@ class MainWindow(QMainWindow):
 
     def append_output(self, text: str) -> None:
         self.terminal.appendPlainText(text)
+
+    def open_downloads_folder(self):
+        """Open the downloads folder in Windows Explorer"""
+        try:
+            # Use the downloads directory from downloader.py
+            # Ensure the directory exists (it should already exist from downloader.py)
+            os.makedirs(download_dir, exist_ok=True)
+            
+            # Open in Windows Explorer (explorer often returns non-zero even on success)
+            subprocess.run(['explorer', download_dir], check=False)
+            print(f"Opened downloads folder: {download_dir}")
+            
+        except Exception as e:
+            print(f"Error opening downloads folder: {e}")
 
     def handle_download(self):
         url = self.e1.text()
