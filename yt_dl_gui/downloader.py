@@ -55,7 +55,10 @@ def download_ffmpeg() -> None:
 if not (os.path.exists(os.path.join(ffmpeg_dir, 'ffmpeg.exe')) or os.path.exists(os.path.join(ffmpeg_dir, 'ffprobe.exe'))):
     download_ffmpeg()
 
-def download_video(URL, format_type):
+"""
+Calls youtube-dl to download the file and returns a bool for success/fail
+"""
+def download_video(URL, format_type) -> bool:
     # Open options from JSON file
     import json
     options_path = os.path.join(os.path.dirname(__file__), "options.json")
@@ -68,5 +71,11 @@ def download_video(URL, format_type):
     # Add ffmpeg_location at runtime
     ydl_options["ffmpeg_location"] = ffmpeg_dir
 
-    with YoutubeDL(ydl_options) as ydl:
-        ydl.download([URL])
+    try:
+        with YoutubeDL(ydl_options) as ydl:
+            ydl.download([URL])
+        return True
+    except Exception as e:
+        print(f"Download failed: {e}")
+        return False
+    
