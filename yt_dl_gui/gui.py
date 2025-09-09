@@ -4,6 +4,7 @@ from downloader import download_video, download_dir
 import sys
 import subprocess
 import os
+import re
 
 class DownloadWorker(QObject):
     finished = pyqtSignal()
@@ -30,10 +31,12 @@ This class is used to move the terminal output to an output on the GUI
 """
 class EmittingStream(QObject):
     text_written = pyqtSignal(str)
+    def ansi_escape(self, text):
+        return re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]').sub('', text)
 
     def write(self, text):
         if text.strip():
-            self.text_written.emit(text)
+            self.text_written.emit(self.ansi_escape(text))
     
     def flush(self):
         pass
