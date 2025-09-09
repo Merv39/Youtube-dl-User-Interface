@@ -40,6 +40,7 @@ class MainWindow(QMainWindow):
         
         self.e1 = QLineEdit(self)
         self.e1.setPlaceholderText("Enter video URL here")
+        self.e1.returnPressed.connect(self.handle_download)
 
         e2 = QPushButton("Download", self)
         e2.clicked.connect(self.handle_download)
