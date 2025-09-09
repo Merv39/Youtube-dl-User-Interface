@@ -16,4 +16,4 @@ class TestYoutubeDownloader(unittest.TestCase):
 
 
 # To run type into the project folder:
-# python -m unittest -v tests.tests 
+# python -m unittest -v tests.test_download_real
