@@ -1,11 +1,28 @@
 {
-    "format": "bestaudio/best",
-    "outtmpl": "../downloads/%(title)s.%(ext)s",
-    "postprocessors": [
-        {
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "0"
-        }
-    ]
+    "mp3": {
+        "format": "bestaudio/best",
+        "outtmpl": "../downloads/%(title)s.%(ext)s",
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "0"
+            }
+        ]
+    },
+    "flac": {
+        "format": "bestaudio/best",
+        "outtmpl": "../downloads/%(title)s.%(ext)s",
+        "postprocessors": [
+            {
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "flac"
+            }
+        ]
+    },
+    "mp4": {
+        "format": "best",
+        "outtmpl": "../downloads/%(title)s.%(ext)s",
+        "postprocessors": []
+    }
 }

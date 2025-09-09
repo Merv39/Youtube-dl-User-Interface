@@ -55,16 +55,18 @@ def download_ffmpeg() -> None:
 if not (os.path.exists(os.path.join(ffmpeg_dir, 'ffmpeg.exe')) or os.path.exists(os.path.join(ffmpeg_dir, 'ffprobe.exe'))):
     download_ffmpeg()
 
-def download_video(URL):
+def download_video(URL, format_type):
     # Open options from JSON file
     import json
     options_path = os.path.join(os.path.dirname(__file__), "options.json")
     with open(options_path, "r") as f:
-        ydl_options = json.load(f)
+        all_options = json.load(f) 
+    
+    # Select the specific format configuration
+    ydl_options = all_options.get(format_type, all_options["mp3"])  # Default to mp3 if format not found
 
     # Add ffmpeg_location at runtime
     ydl_options["ffmpeg_location"] = ffmpeg_dir
-
 
     with YoutubeDL(ydl_options) as ydl:
         ydl.download([URL])
