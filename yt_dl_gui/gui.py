@@ -1,6 +1,11 @@
 from PyQt5.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QPushButton, QWidget, QPlainTextEdit, QComboBox, QHBoxLayout
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
-from downloader import download_video, download_dir
+try:
+    from .downloader import download_video, download_dir
+except ImportError:
+    # Fallback when running as a script (no package context)
+    from downloader import download_video, download_dir
+
 import sys
 import subprocess
 import os

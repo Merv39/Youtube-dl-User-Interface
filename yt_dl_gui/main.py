@@ -1,6 +1,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from gui import MainWindow
+try:
+    from yt_dl_gui.gui import MainWindow    # for build execution
+except ImportError:
+    from gui import MainWindow              # for direct file execution
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
