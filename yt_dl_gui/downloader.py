@@ -81,7 +81,8 @@ def download_video(URL, format_type, get_stop_flag = None, remove_substring: str
     class FilenamePostProcessor(PostProcessor):
         def __init__(self, remove_substring_inner: str = ""):
             super().__init__()
-            self.remove_substring_inner = remove_substring_inner
+            # normalize into list of substrings
+            self.substrings = [p.strip() for p in remove_substring_inner.split(',') if p.strip()]
 
         def run(self, information):
             # information contains 'filepath' for final file when postprocessors have run
@@ -90,8 +91,11 @@ def download_video(URL, format_type, get_stop_flag = None, remove_substring: str
                 directory = os.path.dirname(final_path)
                 filename = os.path.basename(final_path)
 
-                # Rename the file
-                new_filename = filename.replace(self.remove_substring_inner, "")
+                # Rename the file by removing all specified substrings
+                new_filename = filename
+                for sub in self.substrings:
+                    if sub:
+                        new_filename = new_filename.replace(sub, "")
                 if new_filename == filename:
                     return [], information
                 new_path = os.path.join(directory, new_filename)

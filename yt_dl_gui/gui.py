@@ -97,7 +97,7 @@ class MainWindow(QMainWindow):
 
         # Right: filename tools
         self.remove_substring_input = QLineEdit(self)
-        self.remove_substring_input.setPlaceholderText("Substring to remove from title")
+        self.remove_substring_input.setPlaceholderText("(comma-separated) e.g [MV],(cover)")
 
         right_group = QGroupBox("Filename tools")
         right_vbox = QVBoxLayout()
