@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QPushButton, QWidget, QPlainTextEdit, QComboBox, QHBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QLineEdit, QVBoxLayout, QPushButton, QWidget, QPlainTextEdit, QComboBox, QHBoxLayout, QLabel, QGroupBox
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
 try:
     from .downloader import download_video, download_dir
@@ -15,14 +15,15 @@ class DownloadWorker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(str)
 
-    def __init__(self, url: str, format_type = None):
+    def __init__(self, url: str, format_type = None, remove_substring: str = ""):
         super().__init__()
         self.url = url
         self.format_type = format_type
+        self.remove_substring = remove_substring or ""
         self._stop_flag = False
     
     def run(self):
-        download_video(self.url, self.format_type, get_stop_flag=self.get_stop_flag)
+        download_video(self.url, self.format_type, get_stop_flag=self.get_stop_flag, remove_substring=self.remove_substring)
         self.finished.emit()
     
     def set_stop_flag(self, b : bool):
@@ -87,14 +88,31 @@ class MainWindow(QMainWindow):
         button_layout.addWidget(e3)
         button_layout.addWidget(self.open_folder_btn)
 
-        vbox = QVBoxLayout()
-        vbox.addWidget(self.e1)
-        vbox.addWidget(self.dropdown)
-        vbox.addLayout(button_layout)
-        vbox.addWidget(self.terminal)
+        # Left: main controls and terminal
+        left_vbox = QVBoxLayout()
+        left_vbox.addWidget(self.e1)
+        left_vbox.addWidget(self.dropdown)
+        left_vbox.addLayout(button_layout)
+        left_vbox.addWidget(self.terminal)
+
+        # Right: filename tools
+        self.remove_substring_input = QLineEdit(self)
+        self.remove_substring_input.setPlaceholderText("Substring to remove from title")
+
+        right_group = QGroupBox("Filename tools")
+        right_vbox = QVBoxLayout()
+        right_vbox.addWidget(QLabel("Remove substring:"))
+        right_vbox.addWidget(self.remove_substring_input)
+        right_vbox.addStretch(1)
+        right_group.setLayout(right_vbox)
+
+        # Main horizontal layout
+        main_hbox = QHBoxLayout()
+        main_hbox.addLayout(left_vbox, stretch=3)
+        main_hbox.addWidget(right_group, stretch=1)
 
         container = QWidget()
-        container.setLayout(vbox)
+        container.setLayout(main_hbox)
         self.setCentralWidget(container)
         self.setWindowTitle("YouTube Downloader")
     
@@ -123,8 +141,9 @@ class MainWindow(QMainWindow):
     def handle_download(self):
         url = self.e1.text()
         format_type = self.dropdown.currentText()
+        remove_substring = self.remove_substring_input.text().strip()
         self.thread = QThread()
-        self.worker = DownloadWorker(url, format_type)
+        self.worker = DownloadWorker(url, format_type, remove_substring)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)

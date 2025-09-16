@@ -1,4 +1,5 @@
 from yt_dlp import YoutubeDL
+from yt_dlp.postprocessor.common import PostProcessor
 import os
 project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 os.chdir(os.path.dirname(__file__))  # Change working directory to the script's directory
@@ -58,7 +59,7 @@ if not (os.path.exists(os.path.join(ffmpeg_dir, 'ffmpeg.exe')) or os.path.exists
 """
 Calls youtube-dl to download the file and returns a bool for success/fail
 """
-def download_video(URL, format_type, get_stop_flag = None) -> bool:
+def download_video(URL, format_type, get_stop_flag = None, remove_substring: str = "") -> bool:
     # Open options from JSON file
     import json
     options_path = os.path.join(os.path.dirname(__file__), "options.json")
@@ -76,8 +77,35 @@ def download_video(URL, format_type, get_stop_flag = None) -> bool:
             raise Exception("Download aborted by user.")
     ydl_options['progress_hooks'] = [progress_hook]
 
+    # Postprocessor to adjust filename after download
+    class FilenamePostProcessor(PostProcessor):
+        def __init__(self, remove_substring_inner: str = ""):
+            super().__init__()
+            self.remove_substring_inner = remove_substring_inner
+
+        def run(self, information):
+            # information contains 'filepath' for final file when postprocessors have run
+            try:
+                final_path = information.get('filepath') or information.get('_filename')
+                directory = os.path.dirname(final_path)
+                filename = os.path.basename(final_path)
+
+                # Rename the file
+                new_filename = filename.replace(self.remove_substring_inner, "")
+                if new_filename == filename:
+                    return [], information
+                new_path = os.path.join(directory, new_filename)
+                os.rename(final_path, new_path)
+
+                return [], information
+            except Exception:
+                return [], information
+
     try:
         with YoutubeDL(ydl_options) as ydl:
+            if remove_substring:
+                # Register a simple custom postprocessor at the end
+                ydl.add_post_processor(FilenamePostProcessor(remove_substring))
             ydl.download([URL])
         return True
     except Exception as e:
