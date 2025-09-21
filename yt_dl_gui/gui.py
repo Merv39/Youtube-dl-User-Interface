@@ -19,7 +19,7 @@ class DownloadWorker(QObject):
         super().__init__()
         self.url = url
         self.format_type = format_type
-        self.remove_substring = remove_substring or ""
+        self.remove_substring = remove_substring
         self._stop_flag = False
     
     def run(self):
@@ -98,6 +98,10 @@ class MainWindow(QMainWindow):
         # Right: filename tools
         self.remove_substring_input = QLineEdit(self)
         self.remove_substring_input.setPlaceholderText("(comma-separated) e.g [MV],(cover)")
+        # load substring if it exists
+        if os.path.exists("remove_substring.txt"):
+            with open("remove_substring.txt") as file:
+                self.remove_substring_input.setText(file.read())
 
         right_group = QGroupBox("Filename tools")
         right_vbox = QVBoxLayout()
@@ -142,6 +146,9 @@ class MainWindow(QMainWindow):
         url = self.e1.text()
         format_type = self.dropdown.currentText()
         remove_substring = self.remove_substring_input.text().strip()
+        with open("remove_substring.txt", 'w') as file:
+            file.write(remove_substring)
+
         self.thread = QThread()
         self.worker = DownloadWorker(url, format_type, remove_substring)
         self.worker.moveToThread(self.thread)
